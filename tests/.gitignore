@@ -4,3 +4,8 @@
 *.dump
 *.out
 *.hex
+*.swp
+*.gch
+*.elf
+*.map
+*.rv

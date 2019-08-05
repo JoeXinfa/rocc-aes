@@ -1,0 +1,3 @@
+
+# test without ROCC
+gcc aes-rocc.c aes.h aes.c ; ./a.out

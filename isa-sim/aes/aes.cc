@@ -39,11 +39,10 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 #include "rocc.h"
 #include "mmu.h"
 #include "extension.h"
-#include "sha3.h"
+#include "aes.h"
 
 #include <stdint.h>
 #include <string.h> // CBC mode, for memset
-#include "aes.h"
 
 /*****************************************************************************/
 /* Defines:                                                                  */
@@ -76,7 +75,7 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 /* Private variables:                                                        */
 /*****************************************************************************/
 // state - array holding the intermediate results during decryption.
-typedef uint8_t state_t[4][4];
+//typedef uint8_t aes_state_t[4][4];  // moved to aes.h
 
 
 
@@ -246,7 +245,7 @@ void aes_t::AES_ctx_set_iv(struct AES_ctx* ctx, const uint8_t* iv)
 
 // This function adds the round key to state.
 // The round key is added to the state by an XOR function.
-void aes_t::AddRoundKey(uint8_t round, state_t* state, const uint8_t* RoundKey)
+void aes_t::AddRoundKey(uint8_t round, aes_state_t* state, const uint8_t* RoundKey)
 {
   uint8_t i,j;
   for (i = 0; i < 4; ++i)
@@ -260,7 +259,7 @@ void aes_t::AddRoundKey(uint8_t round, state_t* state, const uint8_t* RoundKey)
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-void aes_t::SubBytes(state_t* state)
+void aes_t::SubBytes(aes_state_t* state)
 {
   uint8_t i, j;
   for (i = 0; i < 4; ++i)
@@ -275,7 +274,7 @@ void aes_t::SubBytes(state_t* state)
 // The ShiftRows() function shifts the rows in the state to the left.
 // Each row is shifted with different offset.
 // Offset = Row number. So the first row is not shifted.
-void aes_t::ShiftRows(state_t* state)
+void aes_t::ShiftRows(aes_state_t* state)
 {
   uint8_t temp;
 
@@ -309,7 +308,7 @@ uint8_t aes_t::xtime(uint8_t x)
 }
 
 // MixColumns function mixes the columns of the state matrix
-void aes_t::MixColumns(state_t* state)
+void aes_t::MixColumns(aes_state_t* state)
 {
   uint8_t i;
   uint8_t Tmp, Tm, t;
@@ -351,7 +350,7 @@ uint8_t aes_t::Multiply(uint8_t x, uint8_t y)
 // MixColumns function mixes the columns of the state matrix.
 // The method used to multiply may be difficult to understand for the inexperienced.
 // Please use the references to gain more information.
-void aes_t::InvMixColumns(state_t* state)
+void aes_t::InvMixColumns(aes_state_t* state)
 {
   int i;
   uint8_t a, b, c, d;
@@ -372,7 +371,7 @@ void aes_t::InvMixColumns(state_t* state)
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-void aes_t::InvSubBytes(state_t* state)
+void aes_t::InvSubBytes(aes_state_t* state)
 {
   uint8_t i, j;
   for (i = 0; i < 4; ++i)
@@ -384,7 +383,7 @@ void aes_t::InvSubBytes(state_t* state)
   }
 }
 
-void aes_t::InvShiftRows(state_t* state)
+void aes_t::InvShiftRows(aes_state_t* state)
 {
   uint8_t temp;
 
@@ -414,7 +413,7 @@ void aes_t::InvShiftRows(state_t* state)
 #endif // #if (defined(CBC) && CBC == 1) || (defined(ECB) && ECB == 1)
 
 // Cipher is the main function that encrypts the PlainText.
-void aes_t::Cipher(state_t* state, const uint8_t* RoundKey)
+void aes_t::Cipher(aes_state_t* state, const uint8_t* RoundKey)
 {
   uint8_t round = 0;
 
@@ -440,7 +439,7 @@ void aes_t::Cipher(state_t* state, const uint8_t* RoundKey)
 }
 
 #if (defined(CBC) && CBC == 1) || (defined(ECB) && ECB == 1)
-void aes_t::InvCipher(state_t* state, const uint8_t* RoundKey)
+void aes_t::InvCipher(aes_state_t* state, const uint8_t* RoundKey)
 {
   uint8_t round = 0;
 
@@ -475,13 +474,13 @@ void aes_t::InvCipher(state_t* state, const uint8_t* RoundKey)
 void aes_t::AES_ECB_encrypt(const struct AES_ctx* ctx, uint8_t* buf)
 {
   // The next function call encrypts the PlainText with the Key using AES algorithm.
-  Cipher((state_t*)buf, ctx->RoundKey);
+  Cipher((aes_state_t*)buf, ctx->RoundKey);
 }
 
 void aes_t::AES_ECB_decrypt(const struct AES_ctx* ctx, uint8_t* buf)
 {
   // The next function call decrypts the PlainText with the Key using AES algorithm.
-  InvCipher((state_t*)buf, ctx->RoundKey);
+  InvCipher((aes_state_t*)buf, ctx->RoundKey);
 }
 
 
@@ -510,7 +509,7 @@ void aes_t::AES_CBC_encrypt_buffer(struct AES_ctx *ctx, uint8_t* buf, uint32_t l
   for (i = 0; i < length; i += AES_BLOCKLEN)
   {
     XorWithIv(buf, Iv);
-    Cipher((state_t*)buf, ctx->RoundKey);
+    Cipher((aes_state_t*)buf, ctx->RoundKey);
     Iv = buf;
     buf += AES_BLOCKLEN;
     //printf("Step %d - %d", i/16, i);
@@ -526,7 +525,7 @@ void aes_t::AES_CBC_decrypt_buffer(struct AES_ctx* ctx, uint8_t* buf,  uint32_t 
   for (i = 0; i < length; i += AES_BLOCKLEN)
   {
     memcpy(storeNextIv, buf, AES_BLOCKLEN);
-    InvCipher((state_t*)buf, ctx->RoundKey);
+    InvCipher((aes_state_t*)buf, ctx->RoundKey);
     XorWithIv(buf, ctx->Iv);
     memcpy(ctx->Iv, storeNextIv, AES_BLOCKLEN);
     buf += AES_BLOCKLEN;
@@ -553,7 +552,7 @@ void aes_t::AES_CTR_xcrypt_buffer(struct AES_ctx* ctx, uint8_t* buf, uint32_t le
     {
       
       memcpy(buffer, ctx->Iv, AES_BLOCKLEN);
-      Cipher((state_t*)buffer,ctx->RoundKey);
+      Cipher((aes_state_t*)buffer,ctx->RoundKey);
 
       /* Increment Iv and handle overflow */
       for (bi = (AES_BLOCKLEN - 1); bi >= 0; --bi)

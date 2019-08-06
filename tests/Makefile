@@ -1,6 +1,6 @@
 CC = riscv64-unknown-elf-gcc
 CFLAGS ?= -march=rv64imafdcxcustom 
-OBJ := $(wildcard *.c)
+OBJ := aes-rocc.c
 OBJ := $(OBJ:.c=.rv)
 
 .PHONY: clean all

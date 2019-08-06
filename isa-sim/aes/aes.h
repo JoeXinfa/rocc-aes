@@ -162,6 +162,19 @@ void AES_CBC_decrypt_buffer(struct AES_ctx* ctx, uint8_t* buf, uint32_t length);
 void AES_CTR_xcrypt_buffer(struct AES_ctx* ctx, uint8_t* buf, uint32_t length);
 #endif // #if defined(CTR) && (CTR == 1)
 
+typedef uint8_t aes_state_t[4][4];
+void KeyExpansion(uint8_t* RoundKey, const uint8_t* Key);
+void AddRoundKey(uint8_t round, aes_state_t* state, const uint8_t* RoundKey);
+void SubBytes(aes_state_t* state);
+void ShiftRows(aes_state_t* state);
+uint8_t xtime(uint8_t x);
+void MixColumns(aes_state_t* state);
+void InvMixColumns(aes_state_t* state);
+void InvSubBytes(aes_state_t* state);
+void InvShiftRows(aes_state_t* state);
+void Cipher(aes_state_t* state, const uint8_t* RoundKey);
+void InvCipher(aes_state_t* state, const uint8_t* RoundKey);
+void XorWithIv(uint8_t* buf, const uint8_t* Iv);
 
 };
 REGISTER_EXTENSION(aes, []() { return new aes_t; })

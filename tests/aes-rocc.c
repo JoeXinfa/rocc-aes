@@ -58,8 +58,10 @@ int main() {
 
     unsigned long long initCycle, duration;
     initCycle = rdcycle();
-    asm volatile ("fence"); //NOTE: fences are only needed if the accelerator is accessing memory
-    //YOUR CODE HERE: Invoke your AES acclerator, write the encrypted output of plaintext to enc_buf
+    //NOTE: fences are only needed if the accelerator is accessing memory
+    asm volatile ("fence");
+    //YOUR CODE HERE: Invoke your AES acclerator, write the encrypted
+    //output of plaintext to enc_buf
     ROCC_INSTRUCTION(0, dummy_result, &plaintext_uint8, &enc_buf, 0);
     ROCC_INSTRUCTION(0, dummy_result, &key_uint8, &iv_uint8, 1);
     ROCC_INSTRUCTION(0, dummy_result, msglen, 0, 2);
@@ -74,25 +76,24 @@ int main() {
     initCycle = rdcycle();
     //END DO NOT MODIFY
 
-    //YOUR CODE HERE: Invoke your AES acclerator, write the decrypted output of enc_buf to decrypted_text
-    //asm volatile ("fence");
+    //YOUR CODE HERE: Invoke your AES acclerator, write the decrypted
+    //output of enc_buf to decrypted_text
+    asm volatile ("fence");
+    ROCC_INSTRUCTION(0, dummy_result, &enc_buf, &decrypted_text, 0);
+    ROCC_INSTRUCTION(0, dummy_result, &key_uint8, &iv_uint8, 1);
+    ROCC_INSTRUCTION(0, dummy_result, msglen, 0, 2);
+    asm volatile ("fence");
     
-    // decrypt without ROCC
-    //AES_init_ctx_iv(&ctx, key_uint8, iv_uint8);
-    //AES_CTR_xcrypt_buffer(&ctx, plaintext_uint8, 32);
-    //printf("decrypt 0x6b == %.2x \n", plaintext_uint8[0]);
-    unsigned char *decrypted_text_tmp = (unsigned char *) plaintext_uint8;
-    for (uint8_t i = 0; i < msglen; ++i)
-        decrypted_text[i] = decrypted_text_tmp[i];
+    //printf("decrypt 0x6b == %.2x \n", decrypted_text[0]);
+    //phex(decrypted_text);
 
     //DO NOT MODIFY
-    //duration = rdcycle() - initCycle;
-    //printf("AES Decryption took %llu cycles!\n", duration);
+    duration = rdcycle() - initCycle;
+    printf("AES Decryption took %llu cycles!\n", duration);
 
     // Check result
-    //assert(memcmp((char *) plaintext_uint8, plaintext[0], 32) == 0);
     assert(memcmp(enc_buf, ciphertext[0], 32) == 0);
-    //assert(memcmp(decrypted_text, plaintext[0], 32) == 0);
+    assert(memcmp(decrypted_text, plaintext[0], 32) == 0);
     //END DO NOT MODIFY
 
     if (memcmp(enc_buf, ciphertext[0], 32) == 0) {
@@ -100,13 +101,11 @@ int main() {
     } else {
         printf("ENCRYPT FAILURE!\n");
     }
-    /*
     if (memcmp(decrypted_text, plaintext[0], 32) == 0) {
         printf("DECRYPT SUCCESS!\n");
     } else {
         printf("DECRYPT FAILURE!\n");
     }
-    */
     return 0;
 }
 

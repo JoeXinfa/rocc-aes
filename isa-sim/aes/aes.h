@@ -24,6 +24,7 @@ public:
     key_addr = 0;
     iv_addr = 0;
     msg_addr = 0;
+    cipher_addr = 0;
     msg_len = 0;
   }
 
@@ -31,17 +32,19 @@ public:
   {
     switch (insn.funct)
     {
-      case 0: // setup key and iv address
+      case 0: // setup plaintext and ciphertext address
+        msg_addr = xs1;
+        cipher_addr = xs2;
+        break;
+
+      case 1: // setup key and iv address
         key_addr = xs1;
         iv_addr = xs2;
         break;
 
-      case 1: // setup msg address and length
-        msg_addr = xs1;
-        msg_len = xs2;
-        break;
+      case 2: // setup msg length and run
+        msg_len = xs1;
 
-      case 2: // run
         // read key into buffer
 	uint8_t key[AES_KEYLEN];
         for(uint32_t i = 0; i < AES_KEYLEN; i++)
@@ -61,14 +64,14 @@ public:
 	struct AES_ctx ctx;
 	AES_init_ctx_iv(&ctx, key, iv);
 	AES_CTR_xcrypt_buffer(&ctx, input, 32);
-	// result is writen to the input address
+	// result is writen to input
 
         // write output
-        //for(uint32_t i = 0; i < SHA3_256_DIGEST_SIZE; i++)
-        //  p->get_mmu()->store_uint8(hash_addr + i, output[i]);
+        for(uint32_t i = 0; i < msg_len; i++)
+          p->get_mmu()->store_uint8(cipher_addr + i, input[i]);
         
         // clean up
-        //free(input);
+        free(input);
 
         break;
 
@@ -83,6 +86,7 @@ private:
   reg_t key_addr;
   reg_t iv_addr;
   reg_t msg_addr;
+  reg_t cipher_addr;
   reg_t msg_len;
 
 // #define the macros below to 1/0 to enable/disable the mode of operation.

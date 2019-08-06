@@ -34,37 +34,42 @@ int main() {
     //END DO NOT MODIFY
 
     // Convert char to int
-    uint8_t *key_uint8 = (uint8_t *) key;
-    uint8_t *iv_uint8 = (uint8_t *) iv;
-    uint8_t *plaintext_uint8 = (uint8_t *) plaintext;
+    // this has bug when pass address to ROCC
+    //uint8_t *key_uint8 = (uint8_t *) key;
+    //uint8_t *iv_uint8 = (uint8_t *) iv;
+    //uint8_t *plaintext_uint8 = (uint8_t *) plaintext;
+
     int dummy_result;
     unsigned int ilen = 32;
+
+    uint8_t key_uint8[] = {
+	0x60,0x3d,0xeb,0x10,0x15,0xca,0x71,0xbe,0x2b,0x73,0xae,0xf0,0x85,0x7d,0x77,0x81,
+        0x1f,0x35,0x2c,0x07,0x3b,0x61,0x08,0xd7,0x2d,0x98,0x10,0xa3,0x09,0x14,0xdf,0xf4
+    };
+    uint8_t iv_uint8[] = {
+	0xf0,0xf1,0xf2,0xf3,0xf4,0xf5,0xf6,0xf7,0xf8,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff
+    };
+    uint8_t plaintext_uint8[] = {
+        0x6b,0xc1,0xbe,0xe2,0x2e,0x40,0x9f,0x96,0xe9,0x3d,0x7e,0x11,0x73,0x93,0x17,0x2a,
+        0xae,0x2d,0x8a,0x57,0x1e,0x03,0xac,0x9c,0x9e,0xb7,0x6f,0xac,0x45,0xaf,0x8e,0x51
+    };
 
     unsigned long long initCycle, duration;
     initCycle = rdcycle();
     asm volatile ("fence"); //NOTE: fences are only needed if the accelerator is accessing memory
     //YOUR CODE HERE: Invoke your AES acclerator, write the encrypted output of plaintext to enc_buf
-    ROCC_INSTRUCTION(0, dummy_result, &key_uint8, &iv_uint8, 0);
-    ROCC_INSTRUCTION(0, dummy_result, &plaintext_uint8, ilen, 1);
-    ROCC_INSTRUCTION(0, dummy_result, 0, 0, 2);
+    ROCC_INSTRUCTION(0, dummy_result, &plaintext_uint8, &enc_buf, 0);
+    ROCC_INSTRUCTION(0, dummy_result, &key_uint8, &iv_uint8, 1);
+    ROCC_INSTRUCTION(0, dummy_result, ilen, 0, 2);
     asm volatile ("fence");
 
-    // encrypt without ROCC
-    //struct AES_ctx ctx;
-    //AES_init_ctx_iv(&ctx, key_uint8, iv_uint8);
-    //AES_CTR_xcrypt_buffer(&ctx, plaintext_uint8, 32);
-    printf("encrypt 0x60 == %.2x \n", plaintext_uint8[0]);
-    //printf("encrypt %d == %d \n", ciphertext[0][0], plaintext_uint8[0]);
-    //phex(plaintext_uint8);
-    unsigned char *enc_buf_tmp = (unsigned char *) plaintext_uint8;
-    unsigned char i;
-    for (i = 0; i < ilen; ++i)
-        enc_buf[i] = enc_buf_tmp[i];
+    //printf("encrypt 0x60 == %.2x \n", enc_buf[0]);
+    //phex(enc_buf);
 
     //DO NOT MODIFY
-    //duration = rdcycle() - initCycle;
-    //printf("AES Encryption took %llu cycles!\n", duration);
-    //initCycle = rdcycle();
+    duration = rdcycle() - initCycle;
+    printf("AES Encryption took %llu cycles!\n", duration);
+    initCycle = rdcycle();
     //END DO NOT MODIFY
 
     //YOUR CODE HERE: Invoke your AES acclerator, write the decrypted output of enc_buf to decrypted_text
@@ -75,7 +80,7 @@ int main() {
     //AES_CTR_xcrypt_buffer(&ctx, plaintext_uint8, 32);
     //printf("decrypt 0x6b == %.2x \n", plaintext_uint8[0]);
     unsigned char *decrypted_text_tmp = (unsigned char *) plaintext_uint8;
-    for (i = 0; i < ilen; ++i)
+    for (uint8_t i = 0; i < ilen; ++i)
         decrypted_text[i] = decrypted_text_tmp[i];
 
     //DO NOT MODIFY

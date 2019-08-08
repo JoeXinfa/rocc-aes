@@ -59,9 +59,9 @@ public:
           // write output
           for(uint32_t i = 0; i < msg_len; i++)
 	    //error: 'class mmu_t' has no member named 'store_uint128'
-            //p->get_mmu()->store_uint128(cipher_addr + i, enc[i]);
-            p->get_mmu()->store_uint64(cipher_addr + i, enc[i].lower());
-            p->get_mmu()->store_uint64(cipher_addr + i, enc[i].upper());
+            p->get_mmu()->store_uint128(cipher_addr + i, enc[i]);
+            //p->get_mmu()->store_uint64(cipher_addr + i, enc[i].lower());
+            //p->get_mmu()->store_uint64(cipher_addr + i, enc[i].upper());
 
           //clean up
           free(input);
@@ -73,8 +73,8 @@ public:
           input  = (uint128_t*)malloc(msg_len*sizeof(uint128_t));
           for(uint32_t i = 0; i < msg_len; i++)
 	    //error: 'class mmu_t' has no member named 'load_uint128'
-            //input[i] = p->get_mmu()->load_uint128(msg_addr + i);
-            input[i] = p->get_mmu()->load_uint64(msg_addr + i);
+            input[i] = p->get_mmu()->load_uint128(msg_addr + i);
+            //input[i] = p->get_mmu()->load_uint64(msg_addr + i);
 
           uint8_t dec[msg_len];
           rsa_decrypt(input, msg_len, key, mod, dec);

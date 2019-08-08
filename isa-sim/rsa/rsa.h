@@ -24,6 +24,7 @@ public:
     key = 0;
     mod = 0;
     msg_len = 0;
+    encrypt = 0;
   }
 
   reg_t custom0(rocc_insn_t insn, reg_t xs1, reg_t xs2)
@@ -40,46 +41,53 @@ public:
         mod = xs2;
         break;
 
-      case 2: // setup msg length and run encrypt
+      case 2: // setup msg length and run
         msg_len = xs1;
+        encrypt = xs2;
 
-        // read message into buffer
-	uint8_t *input;
-        input  = (uint8_t*)malloc(msg_len*sizeof(uint8_t));
-        for(uint32_t i = 0; i < msg_len; i++)
-          input[i] = p->get_mmu()->load_uint8(msg_addr + i);
+        if (encrypt == 1) {  // encrypt
 
-        uint128_t enc[msg_len];
-        rsa_encrypt(input, msg_len, key, mod, enc);
+          // read message into buffer
+          uint8_t *input;
+          input  = (uint8_t*)malloc(msg_len*sizeof(uint8_t));
+          for(uint32_t i = 0; i < msg_len; i++)
+            input[i] = p->get_mmu()->load_uint8(msg_addr + i);
 
-        // write output
-        for(uint32_t i = 0; i < msg_len; i++)
-          p->get_mmu()->store_uint128(cipher_addr + i, enc[i]);
+          uint128_t enc[msg_len];
+          rsa_encrypt(input, msg_len, key, mod, enc);
+
+          // write output
+          for(uint32_t i = 0; i < msg_len; i++)
+	    //error: 'class mmu_t' has no member named 'store_uint128'
+            //p->get_mmu()->store_uint128(cipher_addr + i, enc[i]);
+            p->get_mmu()->store_uint64(cipher_addr + i, enc[i].lower());
+            p->get_mmu()->store_uint64(cipher_addr + i, enc[i].upper());
+
+          //clean up
+          free(input);
+
+        } else {  // decrypt
+
+          // read message into buffer
+          uint128_t *input;
+          input  = (uint128_t*)malloc(msg_len*sizeof(uint128_t));
+          for(uint32_t i = 0; i < msg_len; i++)
+	    //error: 'class mmu_t' has no member named 'load_uint128'
+            //input[i] = p->get_mmu()->load_uint128(msg_addr + i);
+            input[i] = p->get_mmu()->load_uint64(msg_addr + i);
+
+          uint8_t dec[msg_len];
+          rsa_decrypt(input, msg_len, key, mod, dec);
+
+          // write output
+          for(uint32_t i = 0; i < msg_len; i++)
+            p->get_mmu()->store_uint8(cipher_addr + i, dec[i]);
+
+          //clean up
+          free(input);
+
+	}
         
-        //clean up
-        free(input);
-
-        break;
-
-      case 3: // setup msg length and run decrypt
-        msg_len = xs1;
-
-        // read message into buffer
-	uint128_t *input_ct;
-        input_ct  = (uint128_t*)malloc(msg_len*sizeof(uint128_t));
-        for(uint32_t i = 0; i < msg_len; i++)
-          input_ct[i] = p->get_mmu()->load_uint128(msg_addr + i);
-
-        uint8_t dec[msg_len];
-        rsa_decrypt(input_ct, msg_len, key, mod, dec);
-
-        // write output
-        for(uint32_t i = 0; i < msg_len; i++)
-          p->get_mmu()->store_uint8(cipher_addr + i, dec[i]);
-        
-        //clean up
-        free(input_ct);
-
         break;
 
       default:
@@ -96,6 +104,7 @@ private:
   reg_t key;
   reg_t mod;
   reg_t msg_len;
+  reg_t encrypt;
 
 
 uint128_t mod_exp(uint128_t base, uint128_t expo, uint128_t mod);

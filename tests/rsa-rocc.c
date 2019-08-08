@@ -9,7 +9,8 @@
 #include <stdint.h>
 #include <math.h>
 #include "rsa.h"
-#include <stdint.h>
+#include "uint128_t.h"
+#include <inttypes.h>
 
 typedef struct uint128 {
   uint64_t hi;
@@ -17,7 +18,7 @@ typedef struct uint128 {
 } uint128;
 
 int main() {
-/* Private-Key: (128 bit)                                                                                                                                         */
+/* Private-Key: (128 bit)                           */
 /* modulus: */
 /*    00:e0:37:d3:5a:8b:16:0e:b7:f1:19:19:bf:ef:44: */
 /*    09:17 */
@@ -39,14 +40,38 @@ int main() {
     uint128 ciphertext;
     uint128 decrypted;
     //END DO NOT MODIFY
-    int dummy_result;
 
-    uint128 mymod = {0xe037d35a8b160eb7LL, 0xf11919bfef440917};
+    int dummy_result;
+    uint128_t public_key(0, 5); 
+    uint128_t private_key(0, 5); 
+    uint128_t modulo(0, 21);
+
+    const char ptext[] = "HELLO";
+    uint32_t len = 5;
+    uint8_t msg[len];
+    uint32_t i;
+    for (i = 0; i < len; i++) {
+        msg[i] = ptext[i];
+        printf("Message %d char %d value %c \n", i, msg[i], msg[i]);
+        // Shift 60 to make values fall in [0,20] for using the keys
+        msg[i] -= 60;
+    }
+
+    uint128_t enc[len];
+    //rsa_encrypt(msg, len, public_key, modulo, enc);
+
+    uint8_t dec[len];
+    //rsa_decrypt(enc, len, private_key, modulo, dec);
 
     uint64_t initCycle, duration;
     initCycle = rdcycle();
-    asm volatile ("fence"); //NOTE that fences are only needed if your accelerator accesses memory
-    /* YOUR CODE HERE: Invoke your RSA acclerator, write the encrypted output of plaintext to ciphertext */
+    asm volatile ("fence");
+    //NOTE that fences are only needed if your accelerator accesses memory
+    //YOUR CODE HERE: Invoke your RSA acclerator, write the encrypted
+    //output of plaintext to ciphertext
+    ROCC_INSTRUCTION(0, dummy_result, &msg, &enc, 0);
+    ROCC_INSTRUCTION(0, dummy_result, public_key, modulo, 1);
+    ROCC_INSTRUCTION(0, dummy_result, len, 0, 2);
     asm volatile ("fence");
 
     //DO NOT MODIFY
@@ -55,14 +80,25 @@ int main() {
     initCycle = rdcycle();
     //END DO NOT MODIFY
 
-    /* YOUR CODE HERE: Invoke your RSA acclerator, write the decrypted output of ciphertext to decrypted */
+    asm volatile ("fence");
+    // YOUR CODE HERE: Invoke your RSA acclerator, write the decrypted
+    // output of ciphertext to decrypted
+    ROCC_INSTRUCTION(0, dummy_result, &enc, &dec, 0);
+    ROCC_INSTRUCTION(0, dummy_result, private_key, modulo, 1);
+    ROCC_INSTRUCTION(0, dummy_result, len, 0, 3);
     asm volatile ("fence");
 
     //DO NOT MODIFY
     duration = rdcycle() - initCycle;
     printf("RSA Decryption took %llu cycles!\n", duration);
 
-    char *decrypted_text = (char*)&decrypted;
+    for (i = 0; i < len; i++) {
+        dec[i] += 60;
+        printf("Decrypted %d char %d value %c \n", i, dec[i], dec[i]);
+    }
+
+    char *decrypted_text = (char*)&dec;
     printf("decrypted=%s\n", decrypted_text);
-    assert(strcmp(plaintext, decrypted_text) == 0);
+    assert(strcmp(ptext, decrypted_text) == 0);
+    return 0;
 }

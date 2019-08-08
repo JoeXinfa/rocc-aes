@@ -70,5 +70,9 @@
 #define rdinstret() read_csr(instret)
 
 uint128_t mod_exp(uint128_t base, uint128_t expo, uint128_t mod);
+int rsa_encrypt(uint8_t *msg, uint32_t len, uint128_t expo,
+    uint128_t mod, uint128_t *output);
+int rsa_decrypt(uint128_t *ciphertext, uint32_t len, uint128_t expo,
+    uint128_t mod, uint8_t *output);
 
 #endif

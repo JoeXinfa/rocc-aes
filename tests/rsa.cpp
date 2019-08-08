@@ -9,3 +9,25 @@ uint128_t mod_exp(uint128_t base, uint128_t expo, uint128_t mod) {
     result %= mod;
     return result;
 }
+
+
+int rsa_encrypt(uint8_t *msg, uint32_t len, uint128_t expo,
+    uint128_t mod, uint128_t *output) {
+    uint32_t i;
+    for (i = 0; i < len; i++) {
+        uint128_t base = (uint128_t) msg[i];
+        output[i] = mod_exp(base, expo, mod);
+    }
+    return 0;
+}
+
+
+int rsa_decrypt(uint128_t *ciphertext, uint32_t len, uint128_t expo,
+    uint128_t mod, uint8_t *output) {
+    uint32_t i;
+    for (i = 0; i < len; i++) {
+        uint128_t res = mod_exp(ciphertext[i], expo, mod);
+        output[i] = (uint8_t) res;
+    }
+    return 0;
+}

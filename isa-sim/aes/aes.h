@@ -63,7 +63,7 @@ public:
           
 	struct AES_ctx ctx;
 	AES_init_ctx_iv(&ctx, key, iv);
-	AES_CTR_xcrypt_buffer(&ctx, input, 32);
+	AES_CTR_xcrypt_buffer(&ctx, input, msg_len);
 	// result is writen to input
 
         // write output

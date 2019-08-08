@@ -42,7 +42,7 @@ int main() {
     int dummy_result;
     unsigned int keylen = 32;
     unsigned int ivlen = 16;
-    unsigned int msglen = 32;
+    uint32_t msglen = 32;
 
     uint8_t key_uint8[keylen];
     uint8_t iv_uint8[ivlen];
@@ -92,16 +92,16 @@ int main() {
     printf("AES Decryption took %llu cycles!\n", duration);
 
     // Check result
-    assert(memcmp(enc_buf, ciphertext[0], 32) == 0);
-    assert(memcmp(decrypted_text, plaintext[0], 32) == 0);
+    assert(memcmp(enc_buf, ciphertext[0], msglen) == 0);
+    assert(memcmp(decrypted_text, plaintext[0], msglen) == 0);
     //END DO NOT MODIFY
 
-    if (memcmp(enc_buf, ciphertext[0], 32) == 0) {
+    if (memcmp(enc_buf, ciphertext[0], msglen) == 0) {
         printf("ENCRYPT SUCCESS!\n");
     } else {
         printf("ENCRYPT FAILURE!\n");
     }
-    if (memcmp(decrypted_text, plaintext[0], 32) == 0) {
+    if (memcmp(decrypted_text, plaintext[0], msglen) == 0) {
         printf("DECRYPT SUCCESS!\n");
     } else {
         printf("DECRYPT FAILURE!\n");

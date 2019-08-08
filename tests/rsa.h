@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "uint128_t.h"
 
 #define STR1(x) #x
 #define STR(x) STR1(x)
@@ -67,5 +68,7 @@
 #define rdtime() read_csr(time)
 #define rdcycle() read_csr(cycle)
 #define rdinstret() read_csr(instret)
+
+uint128_t mod_exp(uint128_t base, uint128_t expo, uint128_t mod);
 
 #endif

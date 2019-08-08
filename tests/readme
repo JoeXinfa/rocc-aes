@@ -1,3 +1,5 @@
 gcc -o rsa-simp.exe rsa-simp.c -lm
 
 g++ -o test_uint128.exe -std=c++11 test_uint128.cpp uint128_t.cpp
+
+g++ -o rsa-test.exe -std=c++11 rsa-test.cpp uint128_t.cpp rsa.cpp

@@ -51,21 +51,35 @@ int main()
     // d*e = 1 + k * totient 
     int k = 2;  // A constant value 
     double d = (1 + (k*phi))/e; 
+
+    printf("Modulo = %lf \n", n); 
+    printf("Public key = %lf \n", e); 
+    printf("Private key = %lf \n", d); 
   
     // Message to be encrypted 
-    double msg = 20; 
+    double msg = 12; 
   
-    printf("Message data = %lf", msg); 
+    printf("Message data = %lf \n", msg); 
   
     // Encryption c = (msg ^ e) % n 
     double c = pow(msg, e); 
     c = fmod(c, n); 
-    printf("\nEncrypted data = %lf", c); 
+    printf("Encrypted data = %lf \n", c); 
   
     // Decryption m = (c ^ d) % n 
     double m = pow(c, d); 
     m = fmod(m, n); 
-    printf("\nOriginal Message Sent = %lf", m); 
+    printf("Original Message Sent = %lf \n", m); 
   
+    /*
+Modulo = 21.000000 
+Public key = 5.000000 
+Private key = 5.000000 
+Message data = 12.000000 
+Encrypted data = 3.000000 
+Original Message Sent = 12.000000
+    */
+
     return 0; 
 } 
+

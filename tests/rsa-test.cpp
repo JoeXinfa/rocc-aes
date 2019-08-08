@@ -13,25 +13,34 @@ int main() {
     printf("Upper = %" PRIu64 "\n", d.upper());
     */
 
-    uint32_t len = 1;
+    uint32_t len = 7;
     uint8_t msg[len];
     uint128_t public_key(0, 5);
     uint128_t private_key(0, 5);
     uint128_t modulo(0, 21);
 
-    msg[0] = 12;
-    printf("Message %d \n", msg[0]);
+    msg[0] = 2;
+    msg[1] = 5;
+    msg[2] = 8;
+    msg[3] = 9;
+    msg[4] = 12; 
+    msg[5] = 17; 
+    msg[6] = 20;
 
-    uint128_t enc[1];
+    uint128_t enc[len];
     rsa_encrypt(msg, len, public_key, modulo, enc);
 
-    printf("Encypted Lower = %" PRIu64 "\n", enc[0].lower());
-    printf("Encypted Upper = %" PRIu64 "\n", enc[0].upper());
-
-    uint8_t dec[1];
+    uint8_t dec[len];
     rsa_decrypt(enc, len, private_key, modulo, dec);
 
-    printf("Decrypted %d \n", dec[0]);
+    uint32_t i;
+    for (i = 0; i < len; i++) {
+        printf("-----------------------\n");
+        printf("Message %d \n", msg[i]);
+        printf("Encypted Lower = %" PRIu64 "\n", enc[i].lower());
+        printf("Encypted Upper = %" PRIu64 "\n", enc[i].upper());
+        printf("Decrypted %d \n", dec[i]);
+    }
 
     return 0;
 }

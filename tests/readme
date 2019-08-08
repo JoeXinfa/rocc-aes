@@ -3,3 +3,34 @@ gcc -o rsa-simp.exe rsa-simp.c -lm
 g++ -o test_uint128.exe -std=c++11 test_uint128.cpp uint128_t.cpp
 
 g++ -o rsa-test.exe -std=c++11 rsa-test.cpp uint128_t.cpp rsa.cpp
+
+# ---------------------------------------------------------------
+# build error
+root@c7ca10bfa2ad:/sec/rocket-chip/riscv-tools# ./build-spike-only.sh
+
+../rsa/rsa.h: In member function 'virtual reg_t rsa_t::custom0(rocc_insn_t, reg_t, reg_t)':
+../rsa/rsa.h:57:25: error: 'class mmu_t' has no member named 'store_uint128'
+           p->get_mmu()->store_uint128(cipher_addr + i, enc[i]);
+../rsa/rsa.h:71:36: error: 'class mmu_t' has no member named 'load_uint128'
+           input[i] = p->get_mmu()->load_uint128(msg_addr + i);
+
+
+In file included from ../rsa/rsa.cc:4:0:
+../rsa/rsa.h: In member function 'virtual reg_t rsa_t::custom0(rocc_insn_t, reg_t, reg_t)':
+../rsa/rsa.h:66:12: error: jump to case label [-fpermissive]
+       case 3: // setup msg length and run decrypt
+            ^
+../rsa/rsa.h:52:19: note:   crosses initialization of 'uint128_t enc [((rsa_t*)this)->rsa_t::msg_len]'
+         uint128_t enc[msg_len];
+                   ^
+../rsa/rsa.h:88:7: error: jump to case label [-fpermissive]
+       default:
+       ^
+../rsa/rsa.h:76:17: note:   crosses initialization of 'uint8_t dec [((rsa_t*)this)->rsa_t::msg_len]'
+         uint8_t dec[msg_len];
+                 ^
+../rsa/rsa.h:52:19: note:   crosses initialization of 'uint128_t enc [((rsa_t*)this)->rsa_t::msg_len]'
+         uint128_t enc[msg_len];
+                   ^
+make: *** [rsa.o] Error 1
+

@@ -71,7 +71,7 @@ int main() {
     //output of plaintext to ciphertext
     ROCC_INSTRUCTION(0, dummy_result, &msg, &enc, 0);
     ROCC_INSTRUCTION(0, dummy_result, public_key, modulo, 1);
-    ROCC_INSTRUCTION(0, dummy_result, len, 0, 2);
+    ROCC_INSTRUCTION(0, dummy_result, len, 1, 2);
     asm volatile ("fence");
 
     //DO NOT MODIFY
@@ -85,7 +85,7 @@ int main() {
     // output of ciphertext to decrypted
     ROCC_INSTRUCTION(0, dummy_result, &enc, &dec, 0);
     ROCC_INSTRUCTION(0, dummy_result, private_key, modulo, 1);
-    ROCC_INSTRUCTION(0, dummy_result, len, 0, 3);
+    ROCC_INSTRUCTION(0, dummy_result, len, 0, 2);
     asm volatile ("fence");
 
     //DO NOT MODIFY

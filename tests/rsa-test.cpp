@@ -13,19 +13,21 @@ int main() {
     printf("Upper = %" PRIu64 "\n", d.upper());
     */
 
-    uint32_t len = 7;
-    uint8_t msg[len];
     uint128_t public_key(0, 5);
     uint128_t private_key(0, 5);
     uint128_t modulo(0, 21);
 
-    msg[0] = 2;
-    msg[1] = 5;
-    msg[2] = 8;
-    msg[3] = 9;
-    msg[4] = 12; 
-    msg[5] = 17; 
-    msg[6] = 20;
+    const char ptext[] = "HELLO";
+    uint32_t len = 5;
+    uint8_t msg[len];
+    //uint8_t *msg = (uint8_t *) ptext;
+    uint32_t i;
+    for (i = 0; i < len; i++) {
+        msg[i] = ptext[i];
+        printf("Message %d char %d value %c \n", i, msg[i], msg[i]);
+        // Shift 60 to make values fall in [0,20] for using the keys
+        msg[i] -= 60;
+    }
 
     uint128_t enc[len];
     rsa_encrypt(msg, len, public_key, modulo, enc);
@@ -33,13 +35,9 @@ int main() {
     uint8_t dec[len];
     rsa_decrypt(enc, len, private_key, modulo, dec);
 
-    uint32_t i;
     for (i = 0; i < len; i++) {
-        printf("-----------------------\n");
-        printf("Message %d \n", msg[i]);
-        printf("Encypted Lower = %" PRIu64 "\n", enc[i].lower());
-        printf("Encypted Upper = %" PRIu64 "\n", enc[i].upper());
-        printf("Decrypted %d \n", dec[i]);
+        dec[i] += 60; // Shift back
+        printf("Decrypted %d char %d value %c \n", i, dec[i], dec[i]);
     }
 
     return 0;
